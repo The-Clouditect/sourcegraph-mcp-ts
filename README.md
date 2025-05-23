@@ -35,13 +35,16 @@ SOURCEGRAPH_TOKEN=your_api_token
 
 ## Using with MCP-Capable AI Assistants
 
-### Claude Desktop App
+### Amp
 
-1. In Claude Desktop, go to Settings > MCP Servers
+1. In the Amp extension, click the Settings icon and find the MCP Servers section
 2. Add MCP Server
-   - For STDIO: Process: `npx -y sourcegraph-mcp-server`
-   - For HTTP: URL: `http://localhost:3002`
-3. Start using tools by typing "/tool" in Claude
+   - For stdio:
+     - Command: `npx`
+     - Arguments: `-y sourcegraph-mcp-server`
+   - For http:
+     - URL: `http://localhost:3002`
+   - Environment Variables: `SOURCEGRAPH_URL` and `SOURCEGRAPH_TOKEN`
 
 ### MCP Inspector (for testing)
 

@@ -54,8 +54,8 @@ jobs:
         # Force build for initial push (comment on/off to force build outside of normal schedule)
         echo "SKIP_BUILD=false" >> $GITHUB_ENV
 
-    - name: Process upstream changes
-      if: env.SKIP_BUILD != 'true'
+    - name: Process upstream changes #skipped in first commit/build
+      if: false # env.SKIP_BUILD != 'true'
       run: |
         echo "Processing upstream changes..."
         mkdir -p /tmp/saved

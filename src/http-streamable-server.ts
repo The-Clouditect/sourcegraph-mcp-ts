@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 import express from "express";
-import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
+import { Server } from "@modelcontextprotocol/sdk/server/index.js";
 import { createServer } from "./mcp-server";
 import crypto from 'crypto';
 import dotenv from 'dotenv';
@@ -9,60 +9,65 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 async function main() {
-  console.log('Starting Sourcegraph MCP Server (StreamableHTTP)...');
+  console.log('Starting Sourcegraph MCP Server (HTTP)...');
   console.log(`SOURCEGRAPH_URL: ${process.env.SOURCEGRAPH_URL ? 'Set' : 'NOT SET'}`);
   console.log(`SOURCEGRAPH_TOKEN: ${process.env.SOURCEGRAPH_TOKEN ? 'Set (redacted)' : 'NOT SET'}`);
 
   const server = createServer();
   const app = express();
-  const port = process.env.MCP_STREAMABLE_PORT || 3003;
+  const port = parseInt(process.env.MCP_STREAMABLE_PORT || '3003');
   
-  // CORS for Claude.ai
-  const ADDITIONAL_ORIGINS = process.env.CORS_ALLOWED_ORIGINS 
-    ? process.env.CORS_ALLOWED_ORIGINS.split(',').map(o => o.trim())
-    : [];
-
-  app.use(cors({
-    origin: ['https://claude.ai', ...ADDITIONAL_ORIGINS],
-    credentials: true,
-    methods: ['GET', 'POST', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization', 'mcp-session-id']
-  }));
+  // CORS headers for Claude.ai
+  app.use((req, res, next) => {
+    const origin = req.headers.origin;
+    const allowedOrigins = ['https://claude.ai'];
+    const additionalOrigins = process.env.CORS_ALLOWED_ORIGINS?.split(',').map(o => o.trim()) || [];
+    
+    if (origin && [...allowedOrigins, ...additionalOrigins].includes(origin)) {
+      res.setHeader('Access-Control-Allow-Origin', origin);
+      res.setHeader('Access-Control-Allow-Credentials', 'true');
+    }
+    
+    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, mcp-session-id');
+    
+    if (req.method === 'OPTIONS') {
+      return res.sendStatus(200);
+    }
+    next();
+  });
   
   app.use(express.json());
   
   // Session management
-  const transports = {};
+  const sessions = {};
   
-  // Helper to check initialize request
-  function isInitializeRequest(body) {
-    return body?.method === 'initialize';
-  }
-  
-  // MCP endpoint with session management
+  // MCP endpoint
   app.post('/mcp', async (req, res) => {
-    const sessionId = req.headers['mcp-session-id'];
-    let transport;
-    
-    if (!sessionId && isInitializeRequest(req.body)) {
-      const newSessionId = crypto.randomUUID();
-      transport = new StreamableHTTPServerTransport({
-        sessionIdGenerator: () => newSessionId,
+    try {
+      const sessionId = req.headers['mcp-session-id'] || crypto.randomUUID();
+      
+      if (!sessions[sessionId]) {
+        sessions[sessionId] = { server, messages: [] };
+        console.log(`New session: ${sessionId}`);
+      }
+      
+      // Process the JSON-RPC request
+      const response = await server.request(req.body, {
+        sessionId
       });
-      transports[newSessionId] = transport;
-      await server.connect(transport);
-      console.log(`Session created: ${newSessionId}`);
-    } else if (sessionId && transports[sessionId]) {
-      transport = transports[sessionId];
-    } else {
-      return res.status(400).json({
+      
+      // Send session ID back in header
+      res.setHeader('mcp-session-id', sessionId);
+      res.json(response);
+    } catch (error) {
+      console.error('MCP request error:', error);
+      res.status(500).json({
         jsonrpc: '2.0',
-        error: { code: -32000, message: 'Invalid session' },
-        id: null,
+        error: { code: -32000, message: error.message },
+        id: req.body?.id || null
       });
     }
-    
-    await transport.handleRequest(req, res, req.body);
   });
   
   // Health check
@@ -70,14 +75,14 @@ async function main() {
     res.json({
       name: "Sourcegraph MCP Server",
       version: "1.0.0",
-      transport: "StreamableHTTP",
+      transport: "HTTP",
       status: "running",
       tools: ["echo", "search-code", "search-commits", "search-diffs", "debug"]
     });
   });
   
   app.listen(port, '0.0.0.0', () => {
-    console.log(`StreamableHTTP server running on port ${port}`);
+    console.log(`HTTP server running on port ${port}`);
     console.log(`- POST /mcp for MCP requests`);
     console.log(`- GET / for health check`);
   });

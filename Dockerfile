@@ -9,6 +9,6 @@ COPY src ./src
 # Install and build
 RUN npm install && npm run build
 
-EXPOSE 3001
+EXPOSE 3003
 
-CMD ["npm", "run", "start:mcp"]
+CMD ["npm", "run", "start:streamable"]

@@ -21,13 +21,15 @@ async function main() {
   const server = createServer();
   const app = express();
   const port = parseInt(process.env.MCP_STREAMABLE_PORT || '3003');
+
+  if (!process.env.REDIS_HOST || !process.env.REDIS_PORT) {
+    throw new Error('REDIS_HOST and REDIS_PORT required');
+  }
   
   // Initialize Redis with mcp-docs pattern
   const redis = new Redis({
-    host: process.env.REDIS_HOST || 'redis-store',
-    port: parseInt(process.env.REDIS_PORT || '6379'),
-    retryDelayOnFailover: 100,
-    maxRetriesPerRequest: 3
+    host: process.env.REDIS_HOST,
+    port: parseInt(process.env.REDIS_PORT)
   });
   
   await redis.ping();

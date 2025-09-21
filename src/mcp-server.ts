@@ -767,7 +767,7 @@ export function createServer() {
       path: z.string().describe("The file path within the repository"),
       revision: z.string().optional().describe("Optional git revision/branch/tag")
     },
-    async ({ repository, path, revision }) => {
+    async ({ repository, path, revision = "HEAD" }) => {
       // Validate Sourcegraph credentials
       const effectiveUrl = sgUrl || process.env.SOURCEGRAPH_URL;
       const effectiveToken = sgToken || process.env.SOURCEGRAPH_TOKEN;

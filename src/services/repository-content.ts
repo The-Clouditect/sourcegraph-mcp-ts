@@ -78,9 +78,9 @@ export async function executeSourcegraphQuery(
  */
 export function getFileContentQuery() {
   return `
-    query FileContent($repository: String!, $path: String!, $revision: String) {
+    query FileContent($repository: String!, $path: String!, $revision: String!) {
       repository(name: $repository) {
-        commit(rev: $revision, default: "HEAD") {
+        commit(rev: $revision) {
           blob(path: $path) {
             content
             byteSize

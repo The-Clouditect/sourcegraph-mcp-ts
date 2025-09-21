@@ -6,7 +6,7 @@ import { createServer } from "./mcp-server.js";
 import crypto from 'crypto';
 import dotenv from 'dotenv';
 import Redis from 'ioredis';
-import { MCPOAuth, BearerValidator } from '../src/mcp-oauth/index.js';
+import { MCPOAuth, BearerValidator } from './mcp-oauth/index.js';
 
 dotenv.config();
 

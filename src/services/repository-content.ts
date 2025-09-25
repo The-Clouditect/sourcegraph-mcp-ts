@@ -97,20 +97,17 @@ export function getFileContentQuery() {
  */
 export function getFileBlameQuery() {
   return `
-    query FileBlame($repository: String!, $path: String!, $startLine: Int!, $endLine: Int!) {
+    query FileBlame($repository: String!, $path: String!, $startLine: Int!, $endLine: Int!, $revision: String!) {
       repository(name: $repository) {
-        commit(rev: "HEAD") {
+        commit(rev: $revision) {
           blob(path: $path) {
             blame(startLine: $startLine, endLine: $endLine) {
               startLine
               endLine
-              author
-              email
-              date
               message
               commit {
                 oid
-                abbrevOid
+                abbreviatedOID
                 message
                 author {
                   person {
@@ -192,7 +189,7 @@ export function formatFileBlameResults(data: any, params: { repository: string, 
     const lineRange = startLine === endLine ? `${startLine}` : `${startLine}-${endLine}`;
     const author = entry.commit?.author?.person?.name || entry.author || "Unknown";
     const date = formatDate(entry.commit?.author?.date || entry.date);
-    const commitId = entry.commit?.abbrevOid || "Unknown";
+    const commitId = entry.commit?.abbreviatedOID || "Unknown";
     const message = formatCommitMessage(entry.commit?.message || entry.message || "No message");
     
     result += `| ${lineRange} | ${author} | ${date} | ${commitId} | ${message} |\n`;

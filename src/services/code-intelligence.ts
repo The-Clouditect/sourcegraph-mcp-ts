@@ -81,9 +81,9 @@ export async function executeSourcegraphQuery(
  */
 export function getDefinitionQuery() {
   return `
-    query Definitions($repository: String!, $path: String!, $line: Int!, $character: Int!) {
+    query Definitions($repository: String!, $path: String!, $line: Int!, $character: Int!, $revision: String!) {
       repository(name: $repository) {
-        commit(rev: "HEAD") {
+        commit(rev: $revision) {
           blob(path: $path) {
             lsif {
               definitions(line: $line, character: $character) {
@@ -108,7 +108,6 @@ export function getDefinitionQuery() {
                     markdown {
                       text
                     }
-                    plainText
                   }
                 }
               }
@@ -125,9 +124,9 @@ export function getDefinitionQuery() {
  */
 export function getReferencesQuery() {
   return `
-    query References($repository: String!, $path: String!, $line: Int!, $character: Int!, $limit: Int!) {
+    query References($repository: String!, $path: String!, $line: Int!, $character: Int!, $limit: Int!, $revision: String!) {
       repository(name: $repository) {
-        commit(rev: "HEAD") {
+        commit(rev: $revision) {
           blob(path: $path) {
             lsif {
               references(line: $line, character: $character, first: $limit) {
@@ -148,12 +147,11 @@ export function getReferencesQuery() {
                       character
                     }
                   }
-                  preview
                 }
                 pageInfo {
                   hasNextPage
+                  totalCount
                 }
-                totalCount
               }
             }
           }
@@ -168,9 +166,9 @@ export function getReferencesQuery() {
  */
 export function getImplementationsQuery() {
   return `
-    query Implementations($repository: String!, $path: String!, $line: Int!, $character: Int!, $limit: Int!) {
+    query Implementations($repository: String!, $path: String!, $line: Int!, $character: Int!, $limit: Int!, $revision: String!) {
       repository(name: $repository) {
-        commit(rev: "HEAD") {
+        commit(rev: $revision) {
           blob(path: $path) {
             lsif {
               implementations(line: $line, character: $character, first: $limit) {
@@ -191,12 +189,11 @@ export function getImplementationsQuery() {
                       character
                     }
                   }
-                  preview
                 }
                 pageInfo {
                   hasNextPage
+                  totalCount
                 }
-                totalCount
               }
             }
           }
@@ -211,16 +208,15 @@ export function getImplementationsQuery() {
  */
 export function getHoverQuery() {
   return `
-    query Hover($repository: String!, $path: String!, $line: Int!, $character: Int!) {
+    query Hover($repository: String!, $path: String!, $line: Int!, $character: Int!, $revision: String!) {
       repository(name: $repository) {
-        commit(rev: "HEAD") {
+        commit(rev: $revision) {
           blob(path: $path) {
             lsif {
               hover(line: $line, character: $character) {
                 markdown {
                   text
                 }
-                plainText
                 range {
                   start {
                     line
@@ -320,8 +316,8 @@ export function formatDefinitionResults(data: any): string {
     result += `### Definition ${index + 1}\n`;
     result += `**Location:** ${repo} - ${path}:${startLine + 1}:${startChar + 1}\n\n`;
     
-    if (node.hover?.markdown?.text || node.hover?.plainText) {
-      const docText = node.hover.markdown?.text || node.hover.plainText;
+    if (node.hover?.markdown?.text) {
+      const docText = node.hover.markdown.text;
       result += `**Documentation:**\n${docText}\n\n`;
     }
   });
@@ -340,7 +336,7 @@ export function formatReferencesResults(data: any, params: { repository: string,
 
   const references = data.repository.commit.blob.lsif.references;
   const nodes = references.nodes;
-  const totalCount = references.totalCount;
+  const totalCount = references.pageInfo?.totalCount || references.nodes.length;
   const hasMore = references.pageInfo.hasNextPage;
   
   if (nodes.length === 0) {
@@ -402,7 +398,7 @@ export function formatImplementationsResults(data: any, params: { repository: st
 
   const implementations = data.repository.commit.blob.lsif.implementations;
   const nodes = implementations.nodes;
-  const totalCount = implementations.totalCount;
+  const totalCount = implementations.pageInfo?.totalCount || implementations.nodes.length;
   const hasMore = implementations.pageInfo.hasNextPage;
   
   if (nodes.length === 0) {

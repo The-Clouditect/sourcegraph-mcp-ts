@@ -508,7 +508,8 @@ export function createServer() {
       repository: z.string().describe("The repository name (e.g. github.com/owner/repo)"),
       path: z.string().describe("The file path within the repository"),
       line: z.number().describe("Zero-indexed line number of the symbol"),
-      character: z.number().describe("Zero-indexed character position of the symbol")
+      character: z.number().describe("Zero-indexed character position of the symbol"),
+      revision: z.string().optional().describe("Optional git revision/branch/tag")
     },
     async ({ repository, path, line, character, revision = "HEAD" }) => {
       // Validate Sourcegraph credentials
@@ -851,7 +852,8 @@ export function createServer() {
       repository: z.string().describe("The repository name (e.g. github.com/owner/repo)"),
       path: z.string().describe("The file path within the repository"),
       startLine: z.number().default(0).describe("Optional zero-indexed start line for partial file blame"),
-      endLine: z.number().default(100).describe("Optional zero-indexed end line for partial file blame")
+      endLine: z.number().default(100).describe("Optional zero-indexed end line for partial file blame"),
+      revision: z.string().optional().describe("Optional git revision/branch/tag")
     },
     async ({ repository, path, startLine, endLine, revision = "HEAD" }) => {
       // Validate Sourcegraph credentials
@@ -1394,7 +1396,8 @@ export function createServer() {
       repository: z.string().describe("The repository name (e.g. github.com/owner/repo)"),
       path: z.string().describe("The file path within the repository"),
       line: z.number().describe("Zero-indexed line number of the symbol"),
-      character: z.number().describe("Zero-indexed character position of the symbol")
+      character: z.number().describe("Zero-indexed character position of the symbol"),
+      revision: z.string().optional().describe("Optional git revision/branch/tag")
     },
     async ({ repository, path, line, character, revision = "HEAD" }) => {
       // Validate Sourcegraph credentials
@@ -1484,7 +1487,8 @@ export function createServer() {
       path: z.string().describe("The file path within the repository"),
       line: z.number().describe("Zero-indexed line number of the symbol"),
       character: z.number().describe("Zero-indexed character position of the symbol"),
-      limit: z.number().default(50).describe("Maximum number of references to return")
+      limit: z.number().default(50).describe("Maximum number of references to return"),
+      revision: z.string().optional().describe("Optional git revision/branch/tag")
     },
     async ({ repository, path, line, character, limit, revision = "HEAD" }) => {
       // Validate Sourcegraph credentials
@@ -1575,7 +1579,8 @@ export function createServer() {
       path: z.string().describe("The file path within the repository"),
       line: z.number().describe("Zero-indexed line number of the interface/abstract class"),
       character: z.number().describe("Zero-indexed character position of the interface/abstract class"),
-      limit: z.number().default(50).describe("Maximum number of implementations to return")
+      limit: z.number().default(50).describe("Maximum number of implementations to return"),
+      revision: z.string().optional().describe("Optional git revision/branch/tag")
     },
     async ({ repository, path, line, character, limit, revision = "HEAD" }) => {
       // Validate Sourcegraph credentials

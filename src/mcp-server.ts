@@ -510,7 +510,7 @@ export function createServer() {
       line: z.number().describe("Zero-indexed line number of the symbol"),
       character: z.number().describe("Zero-indexed character position of the symbol")
     },
-    async ({ repository, path, line, character }) => {
+    async ({ repository, path, line, character, revision = "HEAD" }) => {
       // Validate Sourcegraph credentials
       const effectiveUrl = sgUrl || process.env.SOURCEGRAPH_URL;
       const effectiveToken = sgToken || process.env.SOURCEGRAPH_TOKEN;
@@ -532,7 +532,7 @@ export function createServer() {
         // Execute the query
         const response = await executeSourcegraphQuery(
           graphqlQuery,
-          { repository, path, line, character },
+          { repository, path, line, character, revision },
           { url: effectiveUrl, token: effectiveToken }
         );
         
@@ -853,7 +853,7 @@ export function createServer() {
       startLine: z.number().default(0).describe("Optional zero-indexed start line for partial file blame"),
       endLine: z.number().default(100).describe("Optional zero-indexed end line for partial file blame")
     },
-    async ({ repository, path, startLine, endLine }) => {
+    async ({ repository, path, startLine, endLine, revision = "HEAD" }) => {
       // Validate Sourcegraph credentials
       const effectiveUrl = sgUrl || process.env.SOURCEGRAPH_URL;
       const effectiveToken = sgToken || process.env.SOURCEGRAPH_TOKEN;
@@ -875,7 +875,7 @@ export function createServer() {
         // Execute the query
         const response = await executeSourcegraphQuery(
           graphqlQuery,
-          { repository, path, startLine, endLine },
+          { repository, path, startLine, endLine, revision },
           { url: effectiveUrl, token: effectiveToken }
         );
         
@@ -1396,7 +1396,7 @@ export function createServer() {
       line: z.number().describe("Zero-indexed line number of the symbol"),
       character: z.number().describe("Zero-indexed character position of the symbol")
     },
-    async ({ repository, path, line, character }) => {
+    async ({ repository, path, line, character, revision = "HEAD" }) => {
       // Validate Sourcegraph credentials
       const effectiveUrl = sgUrl || process.env.SOURCEGRAPH_URL;
       const effectiveToken = sgToken || process.env.SOURCEGRAPH_TOKEN;
@@ -1418,7 +1418,7 @@ export function createServer() {
         // Execute the query
         const response = await executeSourcegraphQuery(
           graphqlQuery,
-          { repository, path, line, character },
+          { repository, path, line, character, revision },
           { url: effectiveUrl, token: effectiveToken }
         );
         
@@ -1486,7 +1486,7 @@ export function createServer() {
       character: z.number().describe("Zero-indexed character position of the symbol"),
       limit: z.number().default(50).describe("Maximum number of references to return")
     },
-    async ({ repository, path, line, character, limit }) => {
+    async ({ repository, path, line, character, limit, revision = "HEAD" }) => {
       // Validate Sourcegraph credentials
       const effectiveUrl = sgUrl || process.env.SOURCEGRAPH_URL;
       const effectiveToken = sgToken || process.env.SOURCEGRAPH_TOKEN;
@@ -1508,7 +1508,7 @@ export function createServer() {
         // Execute the query
         const response = await executeSourcegraphQuery(
           graphqlQuery,
-          { repository, path, line, character, limit },
+          { repository, path, line, character, limit, revision },
           { url: effectiveUrl, token: effectiveToken }
         );
         
@@ -1577,7 +1577,7 @@ export function createServer() {
       character: z.number().describe("Zero-indexed character position of the interface/abstract class"),
       limit: z.number().default(50).describe("Maximum number of implementations to return")
     },
-    async ({ repository, path, line, character, limit }) => {
+    async ({ repository, path, line, character, limit, revision = "HEAD" }) => {
       // Validate Sourcegraph credentials
       const effectiveUrl = sgUrl || process.env.SOURCEGRAPH_URL;
       const effectiveToken = sgToken || process.env.SOURCEGRAPH_TOKEN;
@@ -1599,7 +1599,7 @@ export function createServer() {
         // Execute the query
         const response = await executeSourcegraphQuery(
           graphqlQuery,
-          { repository, path, line, character, limit },
+          { repository, path, line, character, limit, revision },
           { url: effectiveUrl, token: effectiveToken }
         );
         

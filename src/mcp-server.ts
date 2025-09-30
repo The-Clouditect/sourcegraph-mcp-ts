@@ -826,7 +826,7 @@ export function createServer() {
     }
   );
 
-  // Add get-file-blame tool
+// Add get-file-blame tool
   server.tool(
     "get-file-blame",
     "Get git blame information for a file.\n\n" +
@@ -874,10 +874,16 @@ export function createServer() {
         // Get the file blame query
         const graphqlQuery = getFileBlameQuery();
         
-        // Execute the query
+        // Execute the query - Convert 0-based to 1-based line numbers for git blame
         const response = await executeSourcegraphQuery(
           graphqlQuery,
-          { repository, path, startLine, endLine, revision },
+          { 
+            repository, 
+            path, 
+            startLine: startLine + 1,  // Convert to 1-based indexing
+            endLine: endLine + 1,      // Convert to 1-based indexing
+            revision 
+          },
           { url: effectiveUrl, token: effectiveToken }
         );
         

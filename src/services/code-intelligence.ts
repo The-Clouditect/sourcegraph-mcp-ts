@@ -230,47 +230,29 @@ export function getHoverQuery() {
 }
 
 /**
- * Get GraphQL query for document symbols
+ * Get GraphQL query for document symbols (v6.7 using codeGraphData)
  */
 export function getDocumentSymbolsQuery() {
   return `
-    query DocumentSymbols($repository: String!, $path: String!) {
+    query DocumentSymbols($repository: String!, $path: String!, $revision: String!) {
       repository(name: $repository) {
-        commit(rev: "HEAD") {
+        commit(rev: $revision) {
           blob(path: $path) {
-            lsif {
-              documentSymbols {
-                symbols {
-                  name
-                  kind
-                  location {
-                    range {
-                      start {
-                        line
-                        character
-                      }
-                      end {
-                        line
-                        character
-                      }
+            codeGraphData {
+              occurrences(first: 1000) {
+                nodes {
+                  symbol
+                  range {
+                    start {
+                      line
+                      character
+                    }
+                    end {
+                      line
+                      character
                     }
                   }
-                  children {
-                    name
-                    kind
-                    location {
-                      range {
-                        start {
-                          line
-                          character
-                        }
-                        end {
-                          line
-                          character
-                        }
-                      }
-                    }
-                  }
+                  roles
                 }
               }
             }
@@ -280,7 +262,6 @@ export function getDocumentSymbolsQuery() {
     }
   `;
 }
-
 /**
  * Format definitions results to readable output
  */
@@ -438,6 +419,89 @@ export function formatImplementationsResults(data: any, params: { repository: st
   if (hasMore) {
     result += `\n> Note: There are more implementations available. This result is limited to showing ${nodes.length} implementations.\n`;
   }
+
+  return result;
+}
+
+
+/**
+ * Format document symbols results to readable output
+ */
+export function formatDocumentSymbolsResults(data: any, params: { repository: string, path: string }): string {
+  // Handle error cases
+  if (!data?.repository?.commit?.blob?.codeGraphData?.occurrences?.nodes) {
+    return "No symbols found or LSIF data not available for this file. LSIF data requires prior indexing.";
+  }
+
+  const nodes = data.repository.commit.blob.codeGraphData.occurrences.nodes;
+  
+  // Filter for definitions only
+  const definitions = nodes.filter((node: any) => 
+    node.roles && node.roles.includes("DEFINITION")
+  );
+  
+  if (definitions.length === 0) {
+    return "No symbol definitions found in this file.";
+  }
+
+  // Parse and categorize symbols
+  const symbols = definitions.map((node: any) => {
+    const symbolStr = node.symbol;
+    let name = symbolStr;
+    let kind = 'Variable';
+    
+    // Extract name from SCIP format
+    // Format: "scip-go gomod github.com/... `package`/SymbolName#"
+    const backtickMatch = symbolStr.match(/`[^`]+`\/([^#.()]+)(#|\.|\(\)\.)?/);
+    if (backtickMatch) {
+      name = backtickMatch[1];
+      // Determine kind based on suffix
+      const suffix = backtickMatch[2];
+      if (suffix === '#') kind = 'Class';
+      else if (suffix === '().') kind = 'Function';
+      else if (suffix === '.') kind = 'Property';
+    } else {
+      // Fallback: try to extract from local symbols
+      const localMatch = symbolStr.match(/^local\s+\d+$/);
+      if (localMatch) {
+        name = symbolStr;
+        kind = 'Variable';
+      }
+    }
+    
+    return {
+      name,
+      kind,
+      line: node.range.start.line
+    };
+  });
+
+  // Group by kind
+  const grouped: Record<string, any[]> = {};
+  symbols.forEach((sym: any) => {
+    const category = sym.kind === 'Class' ? 'Classes/Interfaces' :
+                     sym.kind === 'Function' ? 'Functions/Methods' :
+                     'Variables/Properties';
+    
+    if (!grouped[category]) {
+      grouped[category] = [];
+    }
+    grouped[category].push(sym);
+  });
+
+  // Format output
+  let result = `## Document Symbols\n\n`;
+  result += `Found ${symbols.length} symbols in ${params.path}\n\n`;
+
+  Object.keys(grouped).sort().forEach(category => {
+    result += `### ${category}\n`;
+    grouped[category]
+      .sort((a: any, b: any) => a.line - b.line)
+      .forEach((sym: any) => {
+        result += `- ${sym.name} (line ${sym.line + 1})\n`;
+      });
+    result += `\n`;
+  });
 
   return result;
 }

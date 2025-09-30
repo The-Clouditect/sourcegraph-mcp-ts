@@ -598,6 +598,7 @@ export function createServer() {
   );
 
   // Add get-document-symbols tool
+  // Changes for v6.7: Uses codeGraphData.occurrences instead of deprecated documentSymbols field
   server.tool(
     "get-document-symbols",
     "Get all symbols (functions, classes, variables, etc.) in a file.\n\n" +
@@ -613,7 +614,7 @@ export function createServer() {
     "- Requires LSIF data to be available in Sourcegraph (precise code intelligence)\n" +
     "- For accurate results, the repository must be properly indexed in Sourcegraph\n" +
     "- Symbol kinds vary by language (e.g., classes, methods, functions, variables)\n" +
-    "- Symbols will be organized hierarchically when possible (e.g., methods inside classes)\n\n" +
+    "- Symbols will be organized by category (Classes/Interfaces, Functions/Methods, Variables/Properties)\n\n" +
     "EXAMPLES:\n" +
     "- Get symbols in a JavaScript file: { repository: 'github.com/facebook/react', path: 'packages/react/src/React.js' }\n" +
     "- Analyze a complex TypeScript file: { repository: 'github.com/microsoft/vscode', path: 'src/vs/editor/editor.api.ts' }\n\n" +
@@ -638,13 +639,13 @@ export function createServer() {
       }
 
       try {
-        // Get the document symbols query
+        // Get the document symbols query - now uses codeGraphData for v6.7
         const graphqlQuery = getDocumentSymbolsQuery();
         
-        // Execute the query
+        // Execute the query with HEAD as default revision
         const response = await executeSourcegraphQuery(
           graphqlQuery,
-          { repository, path },
+          { repository, path, revision: "HEAD" },
           { url: effectiveUrl, token: effectiveToken }
         );
         
@@ -658,74 +659,13 @@ export function createServer() {
           };
         }
         
-        // Format the results
-        const symbolsData = response.data?.repository?.commit?.blob?.lsif?.documentSymbols?.symbols;
-        
-        if (!symbolsData || symbolsData.length === 0) {
-          return {
-            content: [{ 
-              type: "text", 
-              text: "No symbols found or LSIF data not available for this file." 
-            }]
-          };
-        }
-        
-        let result = `## Symbols in ${repository}:${path}\n\n`;
-        
-        // Map for symbol kinds to more readable formats
-        const kindMap: Record<string, string> = {
-          'File': '📄',
-          'Module': '📦',
-          'Namespace': '🔠',
-          'Package': '📦',
-          'Class': '🔶',
-          'Method': '🔹',
-          'Property': '🔸',
-          'Field': '🔸',
-          'Constructor': '🏗️',
-          'Enum': '🔢',
-          'Interface': '🔷',
-          'Function': '⚙️',
-          'Variable': '📌',
-          'Constant': '🔒',
-          'String': '🔤',
-          'Number': '🔢',
-          'Boolean': '✓❌',
-          'Array': '📋',
-          'Object': '📦',
-          'Key': '🔑',
-          'Null': '⭕',
-          'EnumMember': '🔹',
-          'Struct': '🏛️',
-          'Event': '⚡',
-          'Operator': '➗',
-          'TypeParameter': '🆃'
-        };
-        
-        // Recursively format symbols
-        const formatSymbols = (symbols: any[], indent = 0): string => {
-          let result = '';
-          symbols.forEach(symbol => {
-            const kind = symbol.kind || 'Unknown';
-            const icon = kindMap[kind] || '•';
-            const startLine = symbol.location?.range?.start?.line + 1 || '?';
-            const indentStr = '  '.repeat(indent);
-            
-            result += `${indentStr}${icon} **${symbol.name}** (${kind}, line ${startLine})\n`;
-            
-            if (symbol.children && symbol.children.length > 0) {
-              result += formatSymbols(symbol.children, indent + 1);
-            }
-          });
-          return result;
-        };
-        
-        result += formatSymbols(symbolsData);
+        // Format the results using the new formatter for codeGraphData
+        const formattedResults = formatDocumentSymbolsResults(response.data, { repository, path });
         
         return {
           content: [{ 
             type: "text", 
-            text: result
+            text: formattedResults
           }]
         };
         

@@ -104,11 +104,6 @@ export function getDefinitionQuery() {
                       character
                     }
                   }
-                  hover {
-                    markdown {
-                      text
-                    }
-                  }
                 }
               }
             }
@@ -150,7 +145,6 @@ export function getReferencesQuery() {
                 }
                 pageInfo {
                   hasNextPage
-                  totalCount
                 }
               }
             }
@@ -192,7 +186,6 @@ export function getImplementationsQuery() {
                 }
                 pageInfo {
                   hasNextPage
-                  totalCount
                 }
               }
             }
@@ -336,7 +329,7 @@ export function formatReferencesResults(data: any, params: { repository: string,
 
   const references = data.repository.commit.blob.lsif.references;
   const nodes = references.nodes;
-  const totalCount = references.pageInfo?.totalCount || references.nodes.length;
+  const totalCount = references.nodes.length;  // Changed from pageInfo?.totalCount
   const hasMore = references.pageInfo.hasNextPage;
   
   if (nodes.length === 0) {
@@ -398,7 +391,7 @@ export function formatImplementationsResults(data: any, params: { repository: st
 
   const implementations = data.repository.commit.blob.lsif.implementations;
   const nodes = implementations.nodes;
-  const totalCount = implementations.pageInfo?.totalCount || implementations.nodes.length;
+  const totalCount = implementations.nodes.length;  // Changed from pageInfo?.totalCount
   const hasMore = implementations.pageInfo.hasNextPage;
   
   if (nodes.length === 0) {

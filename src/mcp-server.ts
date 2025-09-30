@@ -8,7 +8,7 @@ import axios from 'axios';
 // import { naturalLanguageSearch } from './services/natural-language';
 import { analyzeQuery, formatSearchResults } from './utils/formatter';
 import { executeSourcegraphSearch, getFileSearchQuery, getCommitSearchQuery, getDiffSearchQuery } from './services/sourcegraph';
-import { executeSourcegraphQuery, getDefinitionQuery, getReferencesQuery, getImplementationsQuery, getHoverQuery, getDocumentSymbolsQuery, formatDefinitionResults, formatReferencesResults, formatImplementationsResults } from './services/code-intelligence';
+import { executeSourcegraphQuery, getDefinitionQuery, getReferencesQuery, getImplementationsQuery, getHoverQuery, getDocumentSymbolsQuery, formatDefinitionResults, formatReferencesResults, formatImplementationsResults, formatDocumentSymbolsResults } from './services/code-intelligence';
 import { getFileContentQuery, getFileBlameQuery, formatFileContentResults, formatFileBlameResults } from './services/repository-content';
 import { getCVELookupQuery, getPackageVulnerabilityQuery, formatCVELookupResults, formatPackageVulnerabilityResults, buildExploitSearchQuery, buildVendorAdvisorySearchQuery } from './services/security';
 

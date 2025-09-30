@@ -429,11 +429,11 @@ export function formatImplementationsResults(data: any, params: { repository: st
  */
 export function formatDocumentSymbolsResults(data: any, params: { repository: string, path: string }): string {
   // Handle error cases
-  if (!data?.repository?.commit?.blob?.codeGraphData?.occurrences?.nodes) {
+  if (!data?.repository?.commit?.blob?.codeGraphData?.[0]?.occurrences?.nodes) {
     return "No symbols found or LSIF data not available for this file. LSIF data requires prior indexing.";
   }
 
-  const nodes = data.repository.commit.blob.codeGraphData.occurrences.nodes;
+  const nodes = data.repository.commit.blob.codeGraphData[0].occurrences.nodes;
   
   // Filter for definitions only
   const definitions = nodes.filter((node: any) => 

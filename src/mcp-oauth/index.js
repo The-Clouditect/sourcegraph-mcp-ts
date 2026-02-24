@@ -113,6 +113,7 @@ export class MCPOAuth {
     
     // Parse JSON body for token and register endpoints
     app.use('/token', express.json());
+    app.use('/token', express.urlencoded({ extended: false }));
     app.use('/register', express.json());
     
     // OAuth 2.0 Authorization Server Metadata (RFC 8414)

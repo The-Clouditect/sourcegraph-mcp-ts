@@ -23,7 +23,6 @@ export function createDebugServer() {
   const server = new McpServer({
     name: "sourcegraph-mcp-server-debug",
     version: "1.0.0",
-    debug: true, // Enable debug mode for development
   });
 
   // Add a static resource

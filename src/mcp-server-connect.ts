@@ -16,7 +16,6 @@ dotenv.config();
 const server = new McpServer({
   name: "connection-test-server",
   version: "1.0.0",
-  debug: true, // Enable debug mode
 });
 
 // Add a basic echo tool

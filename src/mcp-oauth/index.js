@@ -161,7 +161,11 @@ export class MCPOAuth {
         res.json({
           client_id: clientId,
           client_secret: clientSecret,
-          client_id_issued_at: Math.floor(Date.now() / 1000)
+          client_id_issued_at: Math.floor(Date.now() / 1000),
+          redirect_uris: req.body.redirect_uris || [],
+          grant_types: ["authorization_code"],
+          response_types: ["code"],
+          token_endpoint_auth_method: "client_secret_post"
         });
       } catch (error) {
         this.logger.error(`OAuth Register: Registration failed: ${error.message}`);

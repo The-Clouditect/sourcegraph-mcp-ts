@@ -7,7 +7,7 @@ COPY package.json tsconfig.json ./
 COPY src ./src
 
 # Install and build
-RUN npm install && npm run build
+RUN NODE_OPTIONS=--max-old-space-size=4096 npm install && npm run build
 
 EXPOSE 3003
 

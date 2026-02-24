@@ -104,7 +104,7 @@ async function main() {
         const newSessionId = crypto.randomUUID();
         transport = new StreamableHTTPServerTransport({
           sessionIdGenerator: () => newSessionId,
-        });
+        };
         const server = createServer();
         transports[newSessionId] = transport;
         servers[newSessionId] = server;
@@ -113,7 +113,7 @@ async function main() {
           delete transports[newSessionId];
           delete servers[newSessionId];
           if (DEBUG) console.log(`Session cleaned up: ${newSessionId}`);
-        });
+        };
         if (DEBUG) console.log(`Session created: ${newSessionId}`);
       } else if (sessionId && transports[sessionId]) {
         transport = transports[sessionId];
@@ -122,7 +122,7 @@ async function main() {
           jsonrpc: '2.0',
           error: { code: -32000, message: 'Invalid session' },
           id: null,
-        });
+        };
       }
       
       await transport.handleRequest(req, res, req.body);

@@ -40,7 +40,7 @@
   "devDependencies": {
     "@types/express": "^4.17.21",
     "@types/node": "^22.0.0",
-    "typescript": "^5.3.0"
+    "typescript": "5.3.3"
   },
   "bin": {
     "sourcegraph-mcp-server": "dist/stdio-server.js"

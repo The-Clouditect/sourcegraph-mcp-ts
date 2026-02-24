@@ -109,7 +109,7 @@ async function main() {
         transports[newSessionId] = transport;
         servers[newSessionId] = server;
         await server.connect(transport);
-        transport.on('close', () => {
+        transport.onclose = () => {
           delete transports[newSessionId];
           delete servers[newSessionId];
           if (DEBUG) console.log(`Session cleaned up: ${newSessionId}`);

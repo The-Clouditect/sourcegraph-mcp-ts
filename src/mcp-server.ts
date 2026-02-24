@@ -31,7 +31,6 @@ export function createServer() {
   const server = new McpServer({
     name: "sourcegraph-mcp-server",
     version: "1.0.0",
-    debug: false, // Disable debug mode in production to prevent console output breaking JSON
   });
 
   // Add a static resource

@@ -18,7 +18,6 @@ async function main() {
   console.log(`SOURCEGRAPH_URL: ${process.env.SOURCEGRAPH_URL ? 'Set' : 'NOT SET'}`);
   console.log(`SOURCEGRAPH_TOKEN: ${process.env.SOURCEGRAPH_TOKEN ? 'Set (redacted)' : 'NOT SET'}`);
 
-  const server = createServer();
   const app = express();
   app.set('trust proxy', true);
   const port = parseInt(process.env.MCP_STREAMABLE_PORT || '3003');
@@ -88,6 +87,7 @@ async function main() {
   
   // Session management for MCP
   const transports: Record<string, StreamableHTTPServerTransport> = {};
+  const servers: Record<string, ReturnType<typeof createServer>> = {};
   
   function isInitializeRequest(body: any): boolean {
     return body?.method === 'initialize';
@@ -105,8 +105,15 @@ async function main() {
         transport = new StreamableHTTPServerTransport({
           sessionIdGenerator: () => newSessionId,
         });
+        const server = createServer();
         transports[newSessionId] = transport;
+        servers[newSessionId] = server;
         await server.connect(transport);
+        transport.on('close', () => {
+          delete transports[newSessionId];
+          delete servers[newSessionId];
+          if (DEBUG) console.log(`Session cleaned up: ${newSessionId}`);
+        });
         if (DEBUG) console.log(`Session created: ${newSessionId}`);
       } else if (sessionId && transports[sessionId]) {
         transport = transports[sessionId];

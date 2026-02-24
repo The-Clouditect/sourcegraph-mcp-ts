@@ -20,6 +20,7 @@ async function main() {
 
   const server = createServer();
   const app = express();
+  app.set('trust proxy', true);
   const port = parseInt(process.env.MCP_STREAMABLE_PORT || '3003');
 
   if (!process.env.REDIS_HOST || !process.env.REDIS_PORT) {
